@@ -1,18 +1,10 @@
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
+import myfunc as my
 
-def bmi_range(bmi) :
-    if  bmi <= 18.5 :
-        st.info("저체중 입니다!")
-    elif bmi <= 23 :
-        st.success("정상 입니다!")
-    elif bmi <= 25 :
-        st.warning("과체중 입니다!")
-    elif bmi > 25 :
-        st.warning("비만 입니다!")
-    else :
-        st.error("키 또는 몸무게를 잘못 입력하셨습니다.")
+st.session_state.id = "진유택"
+st.write(f'{st.session_state.id}님 안녕하세요')
 
 selected = st.sidebar.selectbox("목차", ("체질량지수 계산기", "갭마인더", "국가별 통계"))
 
@@ -30,7 +22,7 @@ if selected == "체질량지수 계산기" :
     if st.button("계산", type="primary", disabled=False) :
         bmi = weight / ((height/100)**2) if weight != 0 and height != 0 else 0
         st.write(f"당신의 체질량지수는 {bmi:.2f}입니다.")
-        bmi_range(bmi)
+        my.bmi_range(bmi)
         
     st.image('5334759.jpg', caption="건강한 삶")
 
@@ -47,12 +39,11 @@ if selected == '갭마인더' :
     st.write(data)
 
     fig, ax = plt.subplots()
-    ax.scatter(data['gdpPercap'], data['lifeExp'], s=data['pop']*0.000002)
     
-    data2007 = data['continent'].unique()
+    country = data['continent']
 
     colors=[]
-    for x in data2007 :
+    for x in country :
         if x == 'Africa' :
             colors.append("royalblue")
         elif x == 'Americas' :
@@ -63,8 +54,42 @@ if selected == '갭마인더' :
             colors.append('orange')
         else :
             colors.append('purple')
+        
+
+    ax.scatter(data['gdpPercap'], data['lifeExp'], s=data['pop']*0.000002, color=colors)
+
     st.pyplot(fig)
 
 
 if selected == '국가별 통계' :
     st.title("국가별 통계")
+
+    df = pd.read_csv('gapminder.csv')
+
+    list = df['country'].unique()
+
+    options = st.multiselect(
+    "국가를 선택하십시오.",
+    list,
+    ["Korea, Rep."])
+
+    fig, ax = plt.subplots()
+    for country in options :
+        data = df[df['country']==country]
+        ax.plot(data['year'], data['gdpPercap'])
+    ax.legend()
+    ax.set_title('gdpPercap')
+
+    st.pyplot(fig)
+
+    fig1, ax1 = plt.subplots()
+
+    for country in options :
+        data = df[df['country']==country]
+        ax1.plot(data['year'], data['lifeExp'])
+    ax1.legend()
+    ax1.set_title('lifeExp')
+
+    st.pyplot(fig1)
+
+    
